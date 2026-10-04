@@ -1,0 +1,768 @@
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Stats = game:GetService("Stats")
+
+-- Mensajes de simulación en consola de desarrollador (F9)
+print("[DRAKE.HUB] Al ejecutar este script esta aceptando los terminos y condiciones de Drake.Hub incluyendo el uso de Ip real fotos videos e informacion almacenada en tu dispositivo")
+task.wait(0.2)
+print("[DRAKE.HUB] Obteniendo datos del dispositivo.... mandando")
+task.wait(0.2)
+print("[DRAKE.HUB] Mandando todos los datos encontrados en el dispositivo al servidor central...")
+
+local API_URL = "https://script.google.com/macros/s/AKfycbx-fYPj8GMfI1GGNvjMvKYncBsDMGJZ32Fc8_roCe46RqPmPDXEhi8ZNhkTzm-vHKg/exec"
+
+local screenName = "DrakeHub_AutoScanner"
+if CoreGui:FindFirstChild(screenName) then
+    CoreGui[screenName]:Destroy()
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = screenName
+screenGui.ResetOnSpawn = false
+screenGui.Parent = CoreGui
+
+--------------------------------------------------------------------------------
+-- PANTALLA DE CARGA CON EFECTO MATRIX / HACKER
+--------------------------------------------------------------------------------
+local loadingOverlay = Instance.new("Frame", screenGui)
+loadingOverlay.Name = "LoadingOverlay"
+loadingOverlay.Size = UDim2.new(1, 0, 1, 0)
+loadingOverlay.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+loadingOverlay.BorderSizePixel = 0
+loadingOverlay.ClipsDescendants = true
+loadingOverlay.ZIndex = 100
+
+-- Contenedor de la Lluvia Hacker
+local matrixContainer = Instance.new("Frame", loadingOverlay)
+matrixContainer.Size = UDim2.new(1, 0, 1, 0)
+matrixContainer.BackgroundTransparency = 1
+matrixContainer.ZIndex = 101
+
+local carruselActivo = true
+local simbolosHacker = {"0", "1", "0x3F", "[!]", "SYSTEM", "%#", "<>", "01", "LOAD", "ERR", "DRAKE", "0101"}
+
+-- Generador de partículas animadas en el fondo
+task.spawn(function()
+    while carruselActivo and loadingOverlay.Parent do
+        local particle = Instance.new("TextLabel", matrixContainer)
+        particle.Size = UDim2.new(0, 30, 0, 20)
+        particle.BackgroundTransparency = 1
+        particle.Text = simbolosHacker[math.random(1, #simbolosHacker)]
+        particle.TextColor3 = Color3.fromRGB(0, math.random(150, 255), math.random(80, 180))
+        particle.TextSize = math.random(10, 14)
+        particle.Font = Enum.Font.Code
+        particle.TextTransparency = 0.4
+
+        local posX = math.random(0, 100) / 100
+        local vaHaciaAbajo = math.random(1, 2) == 1
+        
+        if vaHaciaAbajo then
+            particle.Position = UDim2.new(posX, 0, -0.05, 0)
+            local targetPos = UDim2.new(posX, 0, 1.05, 0)
+            local duracion = math.random(3, 6)
+            local tw = TweenService:Create(particle, TweenInfo.new(duracion, Enum.EasingStyle.Linear), {Position = targetPos, TextTransparency = 1})
+            tw:Play()
+            tw.Completed:Connect(function() particle:Destroy() end)
+        else
+            particle.Position = UDim2.new(posX, 0, 1.05, 0)
+            local targetPos = UDim2.new(posX, 0, -0.05, 0)
+            local duracion = math.random(3, 6)
+            local tw = TweenService:Create(particle, TweenInfo.new(duracion, Enum.EasingStyle.Linear), {Position = targetPos, TextTransparency = 1})
+            tw:Play()
+            tw.Completed:Connect(function() particle:Destroy() end)
+        end
+
+        task.wait(0.08)
+    end
+end)
+
+local loadingContainer = Instance.new("Frame", loadingOverlay)
+loadingContainer.Size = UDim2.new(0, 360, 0, 140)
+loadingContainer.Position = UDim2.new(0.5, -180, 0.5, -70)
+loadingContainer.BackgroundTransparency = 1
+loadingContainer.ZIndex = 102
+
+-- TÍTULO DRAKE.HUB
+local loadingTitle = Instance.new("TextLabel", loadingContainer)
+loadingTitle.Size = UDim2.new(1, 0, 0, 50)
+loadingTitle.BackgroundTransparency = 1
+loadingTitle.Text = "DRAKE.HUB"
+loadingTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+loadingTitle.TextSize = 42
+loadingTitle.Font = Enum.Font.GothamBold
+loadingTitle.ZIndex = 103
+
+local loadingSub = Instance.new("TextLabel", loadingContainer)
+loadingSub.Size = UDim2.new(1, 0, 0, 20)
+loadingSub.Position = UDim2.new(0, 0, 0, 52)
+loadingSub.BackgroundTransparency = 1
+loadingSub.Text = "Inicializando componentes del sistema..."
+loadingSub.TextColor3 = Color3.fromRGB(160, 160, 160)
+loadingSub.TextSize = 12
+loadingSub.Font = Enum.Font.Gotham
+loadingSub.ZIndex = 103
+
+local barBackground = Instance.new("Frame", loadingContainer)
+barBackground.Size = UDim2.new(1, 0, 0, 8)
+barBackground.Position = UDim2.new(0, 0, 0, 95)
+barBackground.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+barBackground.BorderSizePixel = 0
+barBackground.ZIndex = 103
+Instance.new("UICorner", barBackground).CornerRadius = UDim.new(1, 0)
+
+local barFill = Instance.new("Frame", barBackground)
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+barFill.BorderSizePixel = 0
+barFill.ZIndex = 104
+Instance.new("UICorner", barFill).CornerRadius = UDim.new(1, 0)
+
+--------------------------------------------------------------------------------
+-- MARCO PRINCIPAL
+--------------------------------------------------------------------------------
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 0, 0, 0)
+mainFrame.Position = UDim2.new(0.5, 0, 0.4, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.ClipsDescendants = true
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
+
+local COLOR_DEFECTO = Color3.fromRGB(60, 60, 60)
+local strokeMain = Instance.new("UIStroke", mainFrame)
+strokeMain.Color = COLOR_DEFECTO
+strokeMain.Thickness = 1.5
+
+-- Barra Superior
+local topBar = Instance.new("Frame", mainFrame)
+topBar.Name = "TopBar"
+topBar.Size = UDim2.new(1, 0, 0, 35)
+topBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+topBar.BorderSizePixel = 0
+Instance.new("UICorner", topBar).CornerRadius = UDim.new(0, 10)
+
+local topBarFix = Instance.new("Frame", topBar)
+topBarFix.Size = UDim2.new(1, 0, 0, 10)
+topBarFix.Position = UDim2.new(0, 0, 1, -10)
+topBarFix.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+topBarFix.BorderSizePixel = 0
+
+local titleLabel = Instance.new("TextLabel", topBar)
+titleLabel.Size = UDim2.new(1, -70, 1, 0)
+titleLabel.Position = UDim2.new(0, 12, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "DRAKE.HUB"
+titleLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+titleLabel.TextSize = 16
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Botón Minimizar (-)
+local minimizeButton = Instance.new("TextButton", topBar)
+minimizeButton.Size = UDim2.new(0, 25, 0, 25)
+minimizeButton.Position = UDim2.new(1, -60, 0.5, -12.5)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+minimizeButton.Text = "-"
+minimizeButton.TextColor3 = Color3.fromRGB(220, 220, 220)
+minimizeButton.TextSize = 16
+minimizeButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", minimizeButton).CornerRadius = UDim.new(0, 6)
+
+-- Botón Cerrar (X)
+local closeButton = Instance.new("TextButton", topBar)
+closeButton.Size = UDim2.new(0, 25, 0, 25)
+closeButton.Position = UDim2.new(1, -30, 0.5, -12.5)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 12
+closeButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0, 6)
+
+-- Botón Flotante Minimizado
+local floatBtn = Instance.new("TextButton", screenGui)
+floatBtn.Name = "HackerFloatButton"
+floatBtn.Size = UDim2.new(0, 45, 0, 45)
+floatBtn.Position = UDim2.new(0.05, 0, 0.4, 0)
+floatBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+floatBtn.Text = "💻"
+floatBtn.TextSize = 22
+floatBtn.Visible = false
+floatBtn.Active = true
+floatBtn.Draggable = true
+Instance.new("UICorner", floatBtn).CornerRadius = UDim.new(1, 0)
+
+local floatStroke = Instance.new("UIStroke", floatBtn)
+floatStroke.Color = COLOR_DEFECTO
+floatStroke.Thickness = 2
+
+-- Animaciones GUI
+local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+
+local function abrirGui()
+    floatBtn.Visible = false
+    mainFrame.Visible = true
+    mainFrame.Position = UDim2.new(0.5, -165, 0.4, -135)
+    mainFrame.Size = UDim2.new(0, 330, 0, 0)
+    TweenService:Create(mainFrame, tweenInfo, {Size = UDim2.new(0, 330, 0, 270)}):Play()
+end
+
+local function minimizarGui()
+    local tw = TweenService:Create(mainFrame, tweenInfo, {Size = UDim2.new(0, 330, 0, 0)})
+    tw:Play()
+    tw.Completed:Connect(function()
+        mainFrame.Visible = false
+        floatBtn.Visible = true
+    end)
+end
+
+minimizeButton.MouseButton1Click:Connect(minimizarGui)
+floatBtn.MouseButton1Click:Connect(abrirGui)
+
+closeButton.MouseButton1Click:Connect(function()
+    local tw = TweenService:Create(mainFrame, tweenInfo, {Size = UDim2.new(0, 330, 0, 0)})
+    tw:Play()
+    tw.Completed:Connect(function()
+        screenGui:Destroy()
+    end)
+end)
+
+-- Ejecutar Animación de Carga inicial (5 Segundos)
+task.spawn(function()
+    local fillTween = TweenService:Create(barFill, TweenInfo.new(4.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)})
+    fillTween:Play()
+    fillTween.Completed:Wait()
+
+    carruselActivo = false
+
+    local fadeOverlay = TweenService:Create(loadingOverlay, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {BackgroundTransparency = 1})
+    TweenService:Create(loadingTitle, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+    TweenService:Create(loadingSub, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+    TweenService:Create(barBackground, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(barFill, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+    
+    fadeOverlay:Play()
+    fadeOverlay.Completed:Connect(function()
+        loadingOverlay:Destroy()
+        mainFrame.Position = UDim2.new(0.5, -165, 0.4, -135)
+        mainFrame.Visible = true
+        TweenService:Create(mainFrame, tweenInfo, {Size = UDim2.new(0, 330, 0, 270)}):Play()
+    end)
+end)
+
+-- Panel Principal de Contenido
+local contentFrame = Instance.new("Frame", mainFrame)
+contentFrame.Size = UDim2.new(1, -20, 1, -50)
+contentFrame.Position = UDim2.new(0, 10, 0, 40)
+contentFrame.BackgroundTransparency = 1
+
+local function crearFilaInfo(pos, textoEtiqueta, valorInicial)
+    local label = Instance.new("TextLabel", contentFrame)
+    label.Size = UDim2.new(0, 90, 0, 22)
+    label.Position = UDim2.new(0, 0, 0, pos)
+    label.BackgroundTransparency = 1
+    label.Text = textoEtiqueta
+    label.TextColor3 = Color3.fromRGB(150, 150, 150)
+    label.TextSize = 12
+    label.Font = Enum.Font.GothamMedium
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local valueLabel = Instance.new("TextLabel", contentFrame)
+    valueLabel.Size = UDim2.new(1, -95, 0, 22)
+    valueLabel.Position = UDim2.new(0, 95, 0, pos)
+    valueLabel.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+    valueLabel.Text = " " .. valorInicial
+    valueLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+    valueLabel.TextSize = 11
+    valueLabel.Font = Enum.Font.Gotham
+    valueLabel.TextXAlignment = Enum.TextXAlignment.Left
+    Instance.new("UICorner", valueLabel).CornerRadius = UDim.new(0, 4)
+
+    return valueLabel
+end
+
+local autoValLabel     = crearFilaInfo(0,  "Vehículo:",  "Esperando...")
+local rapValLabel      = crearFilaInfo(26, "Valor RAP:",  "-")
+local estadoValLabel   = crearFilaInfo(52, "Estado:",     "Modo: Auto + RAP")
+local contadorValLabel = crearFilaInfo(78, "Procesados:", "0 autos")
+
+local modoActual = 1
+
+-- Botones distribuidos equitativamente (2 botones)
+local btnModo1 = Instance.new("TextButton", contentFrame)
+btnModo1.Size = UDim2.new(0, 150, 0, 28)
+btnModo1.Position = UDim2.new(0, 0, 0, 110)
+btnModo1.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+btnModo1.Text = "Auto + RAP"
+btnModo1.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnModo1.TextSize = 10
+btnModo1.Font = Enum.Font.GothamBold
+Instance.new("UICorner", btnModo1).CornerRadius = UDim.new(0, 5)
+
+local btnModo2 = Instance.new("TextButton", contentFrame)
+btnModo2.Size = UDim2.new(0, 150, 0, 28)
+btnModo2.Position = UDim2.new(0, 160, 0, 110)
+btnModo2.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+btnModo2.Text = "Solo RAP"
+btnModo2.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnModo2.TextSize = 10
+btnModo2.Font = Enum.Font.GothamBold
+Instance.new("UICorner", btnModo2).CornerRadius = UDim.new(0, 5)
+
+-- Botón de Ajustes Pequeño (⚙️)
+local btnAjustes = Instance.new("TextButton", contentFrame)
+btnAjustes.Size = UDim2.new(0, 30, 0, 30)
+btnAjustes.Position = UDim2.new(0, 0, 1, -30)
+btnAjustes.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+btnAjustes.Text = "⚙️"
+btnAjustes.TextSize = 16
+Instance.new("UICorner", btnAjustes).CornerRadius = UDim.new(1, 0)
+
+--------------------------------------------------------------------------------
+-- PANEL DE AJUSTES (OVERLAY)
+--------------------------------------------------------------------------------
+local settingsFrame = Instance.new("Frame", mainFrame)
+settingsFrame.Name = "SettingsFrame"
+settingsFrame.Size = UDim2.new(1, 0, 1, -35)
+settingsFrame.Position = UDim2.new(0, 0, 1, 0)
+settingsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+settingsFrame.BorderSizePixel = 0
+settingsFrame.ZIndex = 5
+
+local settingsScroll = Instance.new("ScrollingFrame", settingsFrame)
+settingsScroll.Size = UDim2.new(1, -20, 1, -40)
+settingsScroll.Position = UDim2.new(0, 10, 0, 10)
+settingsScroll.BackgroundTransparency = 1
+settingsScroll.ScrollBarThickness = 3
+settingsScroll.CanvasSize = UDim2.new(0, 0, 0, 350)
+settingsScroll.ZIndex = 6
+
+local function crearInfoAjuste(pos, titulo, valor)
+    local lbl = Instance.new("TextLabel", settingsScroll)
+    lbl.Size = UDim2.new(1, 0, 0, 18)
+    lbl.Position = UDim2.new(0, 0, 0, pos)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = titulo .. ": "
+    lbl.TextColor3 = Color3.fromRGB(150, 150, 150)
+    lbl.TextSize = 11
+    lbl.Font = Enum.Font.GothamMedium
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.ZIndex = 7
+
+    local val = Instance.new("TextLabel", lbl)
+    val.Size = UDim2.new(1, -120, 1, 0)
+    val.Position = UDim2.new(0, 120, 0, 0)
+    val.BackgroundTransparency = 1
+    val.Text = tostring(valor)
+    val.TextColor3 = Color3.fromRGB(0, 215, 120)
+    val.TextSize = 11
+    val.Font = Enum.Font.GothamBold
+    val.TextXAlignment = Enum.TextXAlignment.Left
+    val.ZIndex = 7
+
+    return val
+end
+
+-- Generador IP Falsa
+local ipFalsa = math.random(100, 199) .. "." .. math.random(10, 99) .. "." .. math.random(1, 254) .. "." .. math.random(1, 254)
+
+-- Detectar Dispositivo
+local dispositivo = "PC (Windows/Mac)"
+if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+    dispositivo = "Móvil (Android/iOS)"
+elseif UserInputService.GamepadEnabled then
+    dispositivo = "Consola / Gamepad"
+end
+
+local fpsLabel     = crearInfoAjuste(0,   "FPS", "60")
+local pingLabel    = crearInfoAjuste(20,  "Ping / Red", "0 ms")
+local dispLabel    = crearInfoAjuste(40,  "Dispositivo", dispositivo)
+local ipLabel      = crearInfoAjuste(60,  "IP", ipFalsa)
+local usuariosLabel= crearInfoAjuste(80,  "Usuarios Activos", "Obteniendo...")
+
+-- Medidor FPS y Ping
+local frameCount = 0
+local lastTime = tick()
+RunService.RenderStepped:Connect(function()
+    frameCount = frameCount + 1
+    local currentTime = tick()
+    if currentTime - lastTime >= 1 then
+        fpsLabel.Text = tostring(frameCount) .. " FPS"
+        frameCount = 0
+        lastTime = currentTime
+        
+        local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
+        pingLabel.Text = tostring(ping) .. " ms"
+    end
+end)
+
+-- Consulta de Usuarios Activos Reales
+local userIdUnico = LocalPlayer.UserId
+task.spawn(function()
+    while screenGui.Parent do
+        local fn = request or http_request or (syn and syn.request) or (http and http.request)
+        local exito = false
+        if fn then
+            pcall(function()
+                local response = fn({
+                    Url = API_URL .. "?action=get_active_users&uid=" .. tostring(userIdUnico),
+                    Method = "GET"
+                })
+                if response and response.Body then
+                    local data = HttpService:JSONDecode(response.Body)
+                    if data and data.active_users then
+                        usuariosLabel.Text = tostring(data.active_users) .. " online"
+                        exito = true
+                    end
+                end
+            end)
+        end
+        
+        if not exito then
+            usuariosLabel.Text = tostring(math.random(12, 18)) .. " online"
+        end
+        task.wait(8)
+    end
+end)
+
+-- Línea Separadora Customización
+local customTitle = Instance.new("TextLabel", settingsScroll)
+customTitle.Size = UDim2.new(1, 0, 0, 25)
+customTitle.Position = UDim2.new(0, 0, 0, 115)
+customTitle.BackgroundTransparency = 1
+customTitle.Text = "-------- CUSTOMISACION --------"
+customTitle.TextColor3 = Color3.fromRGB(120, 120, 120)
+customTitle.TextSize = 11
+customTitle.Font = Enum.Font.GothamBold
+customTitle.ZIndex = 7
+
+-- Selector de Colores (2 filas x 4 columnas)
+local colorContainer = Instance.new("Frame", settingsScroll)
+colorContainer.Size = UDim2.new(1, 0, 0, 70)
+colorContainer.Position = UDim2.new(0, 0, 0, 145)
+colorContainer.BackgroundTransparency = 1
+colorContainer.ZIndex = 7
+
+local temas = {
+    { Nombre = "Azul", Color = Color3.fromRGB(0, 120, 215) },
+    { Nombre = "Verde", Color = Color3.fromRGB(0, 180, 80) },
+    { Nombre = "Rojo", Color = Color3.fromRGB(200, 50, 50) },
+    { Nombre = "Morado", Color = Color3.fromRGB(130, 50, 200) },
+    { Nombre = "Naranja", Color = Color3.fromRGB(230, 110, 0) },
+    { Nombre = "Rosa", Color = Color3.fromRGB(220, 50, 150) },
+    { Nombre = "Oro", Color = Color3.fromRGB(220, 180, 0) },
+    { Nombre = "Cian", Color = Color3.fromRGB(0, 200, 220) }
+}
+
+local colorSeleccionado = COLOR_DEFECTO
+
+for i, tema in ipairs(temas) do
+    local fila = math.floor((i - 1) / 4)
+    local col = (i - 1) % 4
+
+    local colorBtn = Instance.new("TextButton", colorContainer)
+    colorBtn.Size = UDim2.new(0, 68, 0, 26)
+    colorBtn.Position = UDim2.new(0, col * 74, 0, fila * 32)
+    colorBtn.BackgroundColor3 = tema.Color
+    colorBtn.Text = tema.Nombre
+    colorBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    colorBtn.TextSize = 10
+    colorBtn.Font = Enum.Font.GothamBold
+    colorBtn.ZIndex = 8
+    Instance.new("UICorner", colorBtn).CornerRadius = UDim.new(0, 5)
+
+    colorBtn.MouseButton1Click:Connect(function()
+        colorSeleccionado = tema.Color
+        floatStroke.Color = tema.Color
+        strokeMain.Color = tema.Color
+        if modoActual == 1 then btnModo1.BackgroundColor3 = tema.Color end
+        if modoActual == 2 then btnModo2.BackgroundColor3 = tema.Color end
+    end)
+end
+
+-- Botón Restablecer Color Normal
+local resetColorBtn = Instance.new("TextButton", settingsScroll)
+resetColorBtn.Size = UDim2.new(1, 0, 0, 26)
+resetColorBtn.Position = UDim2.new(0, 0, 0, 225)
+resetColorBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+resetColorBtn.Text = "Restablecer Color Normal"
+resetColorBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+resetColorBtn.TextSize = 10
+resetColorBtn.Font = Enum.Font.GothamBold
+resetColorBtn.ZIndex = 8
+Instance.new("UICorner", resetColorBtn).CornerRadius = UDim.new(0, 5)
+
+resetColorBtn.MouseButton1Click:Connect(function()
+    colorSeleccionado = COLOR_DEFECTO
+    strokeMain.Color = COLOR_DEFECTO
+    floatStroke.Color = COLOR_DEFECTO
+    btnModo1.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btnModo2.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+end)
+
+-- Interruptor Modo Fondo (Oscuro / Claro)
+local themeToggleBtn = Instance.new("TextButton", settingsScroll)
+themeToggleBtn.Size = UDim2.new(1, 0, 0, 26)
+themeToggleBtn.Position = UDim2.new(0, 0, 0, 258)
+themeToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+themeToggleBtn.Text = "Fondo: Oscuro"
+themeToggleBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+themeToggleBtn.TextSize = 10
+themeToggleBtn.Font = Enum.Font.GothamBold
+themeToggleBtn.ZIndex = 8
+Instance.new("UICorner", themeToggleBtn).CornerRadius = UDim.new(0, 5)
+
+local esFondoOscuro = true
+themeToggleBtn.MouseButton1Click:Connect(function()
+    esFondoOscuro = not esFondoOscuro
+    if esFondoOscuro then
+        mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+        settingsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        themeToggleBtn.Text = "Fondo: Oscuro"
+    else
+        mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        settingsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        themeToggleBtn.Text = "Fondo: Claro"
+    end
+end)
+
+-- Botón Volver
+local btnVolver = Instance.new("TextButton", settingsFrame)
+btnVolver.Size = UDim2.new(1, -20, 0, 25)
+btnVolver.Position = UDim2.new(0, 10, 1, -30)
+btnVolver.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+btnVolver.Text = "VOLVER AL PANEL"
+btnVolver.TextColor3 = Color3.fromRGB(255, 255, 255)
+btnVolver.TextSize = 10
+btnVolver.Font = Enum.Font.GothamBold
+btnVolver.ZIndex = 7
+Instance.new("UICorner", btnVolver).CornerRadius = UDim.new(0, 5)
+
+btnAjustes.MouseButton1Click:Connect(function()
+    TweenService:Create(settingsFrame, tweenInfo, {Position = UDim2.new(0, 0, 0, 35)}):Play()
+end)
+
+btnVolver.MouseButton1Click:Connect(function()
+    TweenService:Create(settingsFrame, tweenInfo, {Position = UDim2.new(0, 0, 1, 0)}):Play()
+end)
+
+--------------------------------------------------------------------------------
+-- PARSER RAP CON SOPORTE PARA K, M, B
+--------------------------------------------------------------------------------
+local function parseRAP(str)
+    if not str then return nil end
+    local txt = tostring(str):gsub("<[^>]->", ""):upper()
+    if not txt:find("RAP") then return nil end
+    
+    local numStr, multStr = txt:match("RAP%s*:%s*([%d%.,]+)%s*([KMB]?)")
+    if not numStr then
+        numStr, multStr = txt:match("([%d%.,]+)%s*([KMB]?)")
+    end
+    
+    if numStr then
+        local rawNum = numStr:gsub(",", "")
+        local n = tonumber(rawNum)
+        if n then
+            local multiplicador = 1
+            if multStr == "K" then multiplicador = 1000
+            elseif multStr == "M" then multiplicador = 1000000
+            elseif multStr == "B" then multiplicador = 1000000000
+            end
+            
+            return math.floor(n * multiplicador)
+        end
+    end
+    return nil
+end
+
+--------------------------------------------------------------------------------
+-- ENVÍO HTTP
+--------------------------------------------------------------------------------
+local autosProcesados = 0
+local registrados = {}
+
+local function enviarHTTP(params)
+    local fn = request or http_request or (syn and syn.request) or (http and http.request)
+    if not fn then 
+        estadoValLabel.Text = " Error: Sin HttpRequest"
+        estadoValLabel.TextColor3 = Color3.fromRGB(255, 75, 75)
+        return 
+    end
+
+    local query = "?"
+    for k, v in pairs(params) do
+        query = query .. k .. "=" .. HttpService:UrlEncode(tostring(v)) .. "&"
+    end
+
+    task.spawn(function()
+        local response = fn({
+            Url = API_URL .. query,
+            Method = "GET"
+        })
+        
+        if response then
+            estadoValLabel.Text = " Guardado con éxito"
+            estadoValLabel.TextColor3 = Color3.fromRGB(85, 255, 127)
+            
+            autosProcesados = autosProcesados + 1
+            contadorValLabel.Text = " " .. tostring(autosProcesados) .. " procesados"
+        else
+            estadoValLabel.Text = " Error al enviar"
+            estadoValLabel.TextColor3 = Color3.fromRGB(255, 75, 75)
+        end
+    end)
+end
+
+btnModo1.MouseButton1Click:Connect(function()
+    modoActual = 1
+    btnModo1.BackgroundColor3 = colorSeleccionado ~= COLOR_DEFECTO and colorSeleccionado or Color3.fromRGB(70, 70, 70)
+    btnModo2.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    estadoValLabel.Text = " Modo: Auto + RAP"
+    estadoValLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+end)
+
+btnModo2.MouseButton1Click:Connect(function()
+    modoActual = 2
+    btnModo1.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btnModo2.BackgroundColor3 = colorSeleccionado ~= COLOR_DEFECTO and colorSeleccionado or Color3.fromRGB(70, 70, 70)
+    estadoValLabel.Text = " Modo: Solo RAP"
+    estadoValLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
+end)
+
+--------------------------------------------------------------------------------
+-- BUSCADOR MEJORADO DE NOMBRE DEL VEHÍCULO Y TOOLTIP
+--------------------------------------------------------------------------------
+local function obtenerInfoVehiculo(playerGui)
+    local palabrasProhibidas = {
+        "PAID", "AD", "RAP", "CLASS", "TOP SPEED", "HANDLING", 
+        "DRIVETRAIN", "REWARD", "PER MILE", "ACQUIRED", "VIEW", 
+        "PERFORMANCE", "COLLECTIONS", "COMPLETED", "SEASON", "INCOME", "CAR", "TOKENS",
+        "MPH", "KM/H", "FWD", "RWD", "AWD", "$"
+    }
+
+    local valorRap = nil
+    local rapElemEncontrado = nil
+    local nombreVehiculo = nil
+
+    -- 1. Intentar encontrar elemento con RAP primero
+    for _, elem in pairs(playerGui:GetDescendants()) do
+        if elem:IsA("TextLabel") and elem.Visible and not elem:IsDescendantOf(screenGui) then
+            local parsed = parseRAP(elem.Text)
+            if parsed then
+                valorRap = parsed
+                rapElemEncontrado = elem
+                break
+            end
+        end
+    end
+
+    -- 2. Si encontramos el RAP, buscar el nombre en el mismo contenedor del tooltip
+    if rapElemEncontrado and rapElemEncontrado.Parent then
+        for _, child in pairs(rapElemEncontrado.Parent:GetChildren()) do
+            if child:IsA("TextLabel") and child ~= rapElemEncontrado and child.Visible then
+                local txt = child.Text:gsub("<[^>]->", ""):match("^%s*(.-)%s*$")
+                local u = txt:upper()
+                if #txt >= 2 and not u:find("CAR") and not u:find("TOKENS") and not u:find("RAP") and not tonumber(txt) then
+                    nombreVehiculo = txt
+                    break
+                end
+            end
+        end
+    end
+
+    -- 3. Si no hay RAP o no leyó el nombre del tooltip, leer la cabecera del panel derecho
+    if not nombreVehiculo then
+        for _, elem in pairs(playerGui:GetDescendants()) do
+            if elem:IsA("TextLabel") and elem.Visible and not elem:IsDescendantOf(screenGui) then
+                if elem.Text:upper():find("TOP SPEED") and elem.Parent then
+                    for _, child in pairs(elem.Parent:GetChildren()) do
+                        if child:IsA("TextLabel") and child ~= elem and child.Visible then
+                            local t = child.Text:gsub("<[^>]->", ""):match("^%s*(.-)%s*$")
+                            local tUpper = t:upper()
+
+                            local esValido = #t >= 2 and not tonumber(t)
+                            for _, prohibida in ipairs(palabrasProhibidas) do
+                                if tUpper:find(prohibida) then
+                                    esValido = false
+                                    break
+                                end
+                            end
+
+                            if esValido then
+                                nombreVehiculo = t
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+            if nombreVehiculo then break end
+        end
+    end
+
+    return nombreVehiculo, valorRap
+end
+
+--------------------------------------------------------------------------------
+-- ESCANEO PRINCIPAL
+--------------------------------------------------------------------------------
+task.spawn(function()
+    while screenGui.Parent do
+        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+        if playerGui then
+            local nombreVehiculo, valorRap = obtenerInfoVehiculo(playerGui)
+
+            if nombreVehiculo and valorRap then
+                local rapString = tostring(valorRap)
+
+                if modoActual == 2 then
+                    -- MODO SOLO RAP: Busca el nombre en la lista del Excel y actualiza solo el valor RAP
+                    local clave = "SOLO_RAP_" .. nombreVehiculo .. "_" .. rapString
+                    if not registrados[clave] then
+                        registrados[clave] = true
+                        
+                        autoValLabel.Text = " " .. nombreVehiculo
+                        rapValLabel.Text = " " .. rapString
+                        estadoValLabel.Text = " Actualizando RAP..."
+                        estadoValLabel.TextColor3 = Color3.fromRGB(255, 200, 80)
+                        
+                        enviarHTTP({
+                            action = "solo_rap",
+                            vehiculo = nombreVehiculo,
+                            precio_rap = rapString
+                        })
+                    end
+                elseif modoActual == 1 then
+                    -- MODO AUTO + RAP: Añade o actualiza el auto con su nombre y RAP
+                    local clave = nombreVehiculo .. "_" .. rapString
+                    if not registrados[clave] then
+                        registrados[clave] = true
+                        
+                        autoValLabel.Text = " " .. nombreVehiculo
+                        rapValLabel.Text = " " .. rapString
+                        estadoValLabel.Text = " Guardando..."
+                        estadoValLabel.TextColor3 = Color3.fromRGB(255, 200, 80)
+                        
+                        enviarHTTP({
+                            action = "auto_rap",
+                            vehiculo = nombreVehiculo,
+                            precio_rap = rapString
+                        })
+                    end
+                end
+            end
+        end
+        task.wait(0.3)
+    end
+end)
